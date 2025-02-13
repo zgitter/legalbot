@@ -7,12 +7,14 @@ from langchain.prompts import PromptTemplate
 from dotenv import load_dotenv
 
 # Load environment variables
-load_dotenv()
+#load_dotenv()
 
-GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
-PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
-PINECONE_ENVIRONMENT = os.getenv("PINECONE_ENVIRONMENT")
-PINECONE_INDEX_NAME = os.getenv("PINECONE_INDEX_NAME")
+import streamlit as st
+
+GOOGLE_API_KEY = st.secrets.GOOGLE_API_KEY
+PINECONE_API_KEY = st.secrets.PINECONE_API_KEY
+PINECONE_ENVIRONMENT = st.secrets.PINECONE_ENVIRONMENT
+PINECONE_INDEX_NAME = st.secrets.PINECONE_INDEX_NAME
 
 # Initialize components
 def init_rag_pipeline():
