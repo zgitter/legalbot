@@ -1,13 +1,7 @@
-# rag_pipeline.py
-import os
 from langchain_google_genai import GoogleGenerativeAIEmbeddings, ChatGoogleGenerativeAI
 from langchain_pinecone import PineconeVectorStore
 from langchain.chains import RetrievalQA
 from langchain.prompts import PromptTemplate
-from dotenv import load_dotenv
-
-# Load environment variables
-#load_dotenv()
 
 import streamlit as st
 
@@ -50,38 +44,3 @@ def get_rag_response(vector_store, llm, query):
     
     response = qa_chain.invoke({"query": query})
     return response["result"]
-
-# app.py
-import streamlit as st
-from rag_pipeline import init_rag_pipeline, get_rag_response
-
-# Streamlit UI
-def main():
-    # Display banner image
-    st.image("banner.png", use_column_width=True)
-    
-    vector_store, llm = init_rag_pipeline()
-    
-    if "messages" not in st.session_state:
-        st.session_state.messages = []
-    
-    for message in st.session_state.messages:
-        with st.chat_message(message["role"]):
-            st.markdown(message["content"])
-    
-    if prompt := st.chat_input("Ask your question"):
-        st.session_state.messages.append({"role": "user", "content": prompt})
-        
-        with st.chat_message("user"):
-            st.markdown(prompt)
-        
-        with st.spinner("Thinking..."):
-            response = get_rag_response(vector_store, llm, prompt)
-        
-        with st.chat_message("assistant"):
-            st.markdown(response)
-        
-        st.session_state.messages.append({"role": "assistant", "content": response})
-
-if __name__ == "__main__":
-    main()
