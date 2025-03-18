@@ -2,8 +2,6 @@ import streamlit as st
 from rag_pipeline import init_rag_pipeline, get_rag_response
 
 def main():
-    #st.title("RAG Chat App with Google AI and Pinecone")
-
     st.image("legalbanner.svg", use_container_width=True)
 
     vector_store, llm = init_rag_pipeline()

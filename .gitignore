@@ -1,4 +1,8 @@
 node_modules/ 
 venv/ 
 __pycache__/ 
+<<<<<<< HEAD
 .env
+=======
+.env
+>>>>>>> 08836fa7b73c9588450b3996d6962af4be20a02a

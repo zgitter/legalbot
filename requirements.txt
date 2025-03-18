@@ -2,7 +2,7 @@ langchain>=0.1.0  # Or a more recent version like langchain>=0.1.10, or just lat
 langchain-community>=0.1.0 # Update langchain-community as well
 google-generativeai
 langchain-google-genai
-pinecone-client
-pinecone
 streamlit
-python-dotenv
+langchain_pinecone
+pinecone-client>=3.0.0
+langchain-pinecone
