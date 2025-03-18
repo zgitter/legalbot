@@ -25,10 +25,8 @@ def init_rag_pipeline():
     
     return vector_store, llm
 
-<<<<<<< HEAD
+#<<<<<<< HEAD
 import re
-
-=======
 
 def get_rag_response(vector_store, llm, query):
     """Retrieve relevant legal text from Pinecone and generate a response."""
