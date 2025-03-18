@@ -3,6 +3,8 @@ from langchain_pinecone import PineconeVectorStore
 from langchain.chains import RetrievalQA
 from langchain.prompts import PromptTemplate
 
+import re
+
 import streamlit as st
 
 GOOGLE_API_KEY = st.secrets.GOOGLE_API_KEY
@@ -22,7 +24,8 @@ def init_rag_pipeline():
     
     return vector_store, llm
 
-# Define RAG pipeline
+import re
+
 def get_rag_response(vector_store, llm, query):
     """Retrieve relevant legal text from Pinecone and generate a response."""
     
@@ -33,15 +36,19 @@ def get_rag_response(vector_store, llm, query):
     # Build metadata filters
     filters = {}
     if article_match:
-        filters["article_number"] = article_match.group(1)  # Filter by article number
+        filters["article_number"] = {"$eq": str(article_match.group(1))}  # Exact match for article number
     if chapter_match:
-        filters["chapter"] = f"Chapter {chapter_match.group(1)}"  # Filter by chapter title
-    
-    # Step 2: Retrieve documents with filtering if applicable
-    if filters:
-        retrieved_docs = vector_store.similarity_search(query, k=10, filter=filters)
-    else:
-        retrieved_docs = vector_store.similarity_search(query, k=10)  # No filter, normal search
+        filters["chapter"] = {"$eq": f"Chapter {chapter_match.group(1)}"}  # Exact match for chapter title
+
+    # Step 2: Try metadata filtering first, then fallback to similarity search
+    try:
+        if filters:
+            retrieved_docs = vector_store.similarity_search(query, k=50, filter=filters)
+        else:
+            retrieved_docs = vector_store.similarity_search(query, k=50)  # No filter, normal search
+    except Exception as e:
+        print(f"Error in retrieval: {e}")
+        retrieved_docs = vector_store.similarity_search(query, k=50)  # Fallback to normal search
 
     # Step 3: Merge retrieved texts
     merged_context = "\n\n".join([doc.page_content for doc in retrieved_docs])
