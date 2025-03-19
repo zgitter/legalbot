@@ -9,7 +9,7 @@ from rank_bm25 import BM25Okapi
 nltk.download("punkt")
 
 # Load JSON law book
-with open("/mnt/data/Ethiopia_1994.json", "r", encoding="utf-8") as f:
+with open("data/Ethiopia_1994.json", "r", encoding="utf-8") as f:
     law_data = json.load(f)
 
 def process_section(section):
@@ -40,7 +40,7 @@ tokenized_corpus = [word_tokenize(text.lower()) for text in corpus_texts]
 bm25 = BM25Okapi(tokenized_corpus)
 
 # Save BM25 index to file
-with open("/mnt/data/bm25_index.pkl", "wb") as f:
+with open("data/bm25_index.pkl", "wb") as f:
     pickle.dump((bm25, corpus_texts), f)
 
 print("Successfully created and saved BM25 index!")
