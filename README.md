@@ -4,13 +4,21 @@ An experimental legal question answering chatbot, for the Ethiopia jurisdiction 
 
 ## Components ---> Chat App + RAG + VDB + LLM
 
-### Chat app: This is the frontend of our chatbot. The user uses it to ask questions and to getback response/answer
+### Chat app
 
-### RAG (Retrieval augmented generation): is the core of our chatbot. RAG fetches (retrieves) context from VDB based on the user question. Then transfers this the LLM to getback answer to the user
+This is the frontend of our chatbot. The user uses it to ask questions and to getback response/answer
 
-### VDB (Vector database): This is where our data is located. For our case it is the ETHIOPIAN CONSTITUTION. For now we use a VDB called Pinecone
+### RAG (Retrieval augmented generation)
 
-### LLM (Large Language Model): This is what gives the final answer to the user. For that we use an AI model called Gemini (this is from google)
+is the core of our chatbot. RAG fetches (retrieves) context from VDB based on the user question. Then transfers this the LLM to getback answer to the user
+
+### VDB (Vector database)
+
+This is where our data is located. For our case it is the ETHIOPIAN CONSTITUTION. For now we use a VDB called Pinecone
+
+### LLM (Large Language Model)
+
+This is what gives the final answer to the user. For that we use an AI model called Gemini (this is from google)
 
 ![components and operation diagram](operation_diagram.png)
 
