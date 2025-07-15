@@ -2,15 +2,11 @@ from langchain_google_genai import GoogleGenerativeAIEmbeddings, ChatGoogleGener
 from langchain_pinecone import PineconeVectorStore
 from langchain.chains import RetrievalQA
 from langchain.prompts import PromptTemplate
-
-
-import streamlit as st
 import re
 
-import pickle
-from nltk.tokenize import word_tokenize
-from rank_bm25 import BM25Okapi
+import re
 
+import streamlit as st
 
 GOOGLE_API_KEY = st.secrets.GOOGLE_API_KEY
 PINECONE_API_KEY = st.secrets.PINECONE_API_KEY
@@ -19,9 +15,7 @@ PINECONE_INDEX_NAME = st.secrets.PINECONE_INDEX_NAME
 
 # Initialize components
 def init_rag_pipeline():
-    
     embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
-    
     vector_store = PineconeVectorStore(
         index_name=PINECONE_INDEX_NAME,
         embedding=embeddings,
@@ -31,57 +25,50 @@ def init_rag_pipeline():
     
     return vector_store, llm
 
-
-
-# Define RAG pipeline + ?
-# 
-
-def load_bm25_index():
-    """Loads the precomputed BM25 index from file."""
-    with open("data/bm25_index.pkl", "rb") as f:
-        bm25, corpus_texts = pickle.load(f)
-    return bm25, corpus_texts
-
-def get_bm25_results(query: str, bm25: BM25Okapi, corpus_texts: list, top_n: int = 5):
-    """Returns a set of top-n document texts from BM25 retrieval."""
-    tokenized_query = word_tokenize(query.lower())
-    return set(bm25.get_top_n(tokenized_query, corpus_texts, n=top_n))
-
-def get_vector_results(query: str, vector_store, top_k: int = 5):
-    """Returns a set of top-k document texts from vector search."""
-    return set(doc.page_content for doc in vector_store.similarity_search(query, k=top_k))
-
-def get_hybrid_context(query: str, vector_store, bm25: BM25Okapi, corpus_texts: list, top_k: int = 5):
-    """Retrieve contexts using both vector search and BM25, then combine them."""
-    vector_contexts = get_vector_results(query, vector_store, top_k=top_k)
-    bm25_contexts = get_bm25_results(query, bm25, corpus_texts, top_n=top_k)
-    return "\n\n".join(vector_contexts.union(bm25_contexts))
+#<<<<<<< HEAD
+import re
 
 def get_rag_response(vector_store, llm, query):
-    """Retrieves relevant context using hybrid search and generates an LLM response."""
-    bm25, corpus_texts = load_bm25_index()
-    combined_context = get_hybrid_context(query, vector_store, bm25, corpus_texts, top_k=5)
+    """Retrieve relevant legal text from Pinecone and generate a response."""
     
+    # Step 1: Detect specific legal references in query
+    article_match = re.search(r"Article (\d+)", query, re.IGNORECASE)
+    chapter_match = re.search(r"Chapter (\d+)", query, re.IGNORECASE)
+
+    # Build metadata filters
+    filters = {}
+    if article_match:
+        filters["article_number"] = article_match.group(1)  # Filter by article number
+    if chapter_match:
+        filters["chapter"] = f"Chapter {chapter_match.group(1)}"  # Filter by chapter title
+    
+    # Step 2: Retrieve documents with filtering if applicable
+    if filters:
+        retrieved_docs = vector_store.similarity_search(query, k=10, filter=filters)
+    else:
+        retrieved_docs = vector_store.similarity_search(query, k=10)  # No filter, normal search
+
+    # Step 3: Merge retrieved texts
+    merged_context = "\n\n".join([doc.page_content for doc in retrieved_docs])
+
+    # Step 4: Construct prompt
     prompt_template = """
-    You are a helpful legal assistant. Use the following legal context to answer the question accurately.
-    If the answer is not present in the context, say "I don't know."
-    
-    Legal Context:
-    {context}
-    
+    Use the following legal text to answer accurately. If an article is missing, say so.
+
+    Legal Context: {context}
     Question: {question}
-    
-    Answer:"""
-    
+
+    Answer:
+    """
     PROMPT = PromptTemplate(template=prompt_template, input_variables=["context", "question"])
+    
+    # Step 5: Run the LLM
     qa_chain = RetrievalQA.from_chain_type(
         llm=llm,
         chain_type="stuff",
         retriever=vector_store.as_retriever(),
         chain_type_kwargs={"prompt": PROMPT},
     )
-    
-    response = qa_chain.invoke({"query": query, "context": combined_context})
+
+    response = qa_chain.invoke({"query": query, "context": merged_context})
     return response["result"]
-
-
